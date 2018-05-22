@@ -1,3 +1,4 @@
+'use strict';
 
 // get dependencies
 var express = require("express");
@@ -41,6 +42,7 @@ let securityService = require("./securityService");
 sequelize.sync().then((err) => {
     app.post("/register", userService.register);
     app.post("/login", userService.login);
+    app.post("/recover", userService.recover);
     app.get("/updatetoken", securityService.updateToken.bind(this, sequelize));
 
     app.get("/users", userService.get);

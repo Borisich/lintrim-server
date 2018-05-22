@@ -1,3 +1,4 @@
+let sendEmail = require("./emailer");
 
 let checkToken = require("./securityService").checkToken;
 let signToken = require("./securityService").signToken;
@@ -58,6 +59,61 @@ module.exports = function (sequelize) {
                 }
             });
 
+        },
+        recover: function (req, res) {
+            console.log('recover');
+            let email = req.body.email;
+
+            if (!email) {
+                res.status(403).json({
+                    ok: false,
+                    message: 'no email in request'
+                });
+            }
+
+            function randomStr(length) {
+                let text = "";
+                let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+                for (let i = 0; i < length; i++)
+                    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+                return text;
+            }
+
+            const token = randomStr(80);
+
+            let data = {
+                to: 'iv.xromov@mail.ru',
+                subject: 'Восстановление пароля', //'Nodemailer is unicode friendly ✔',
+                text: `Для восстановления пароля перейдите по ссылке: ${'http://localhost:3000/login/reset/'}${token}`, //'Hello to myself!',
+                html: `<p>Для восстановления пароля перейдите по ссылке: </p><p>${'http://localhost:3000/login/reset/'}${token}</p>`,
+            };
+
+            User.findOne({where: {username: email}}).then(user => {
+                if (!user){
+                    res.status(403).json({
+                        ok: false,
+                        message: 'no user found'
+                    });
+                } else {
+                    User.update({resetString: token}, {where: {username: email}}).then(result => {
+                        sendEmail(data).then(ok => {
+                            if (ok) {
+                                console.log('COMPLETE')
+                                res.status(200).json({
+                                    ok: true,
+                                });
+                            } else {
+                                res.status(403).json({
+                                    ok: false,
+                                    message: 'failed to send mail'
+                                });
+                            }
+                        })
+                    })
+                }
+            })
         },
         get: function (req, res) {
             checkToken(req,res).then(ok => {
