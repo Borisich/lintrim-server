@@ -1,45 +1,19 @@
-var jwt=require('jsonwebtoken');
 
-let secret = 'samplesecret';
-
-let checkToken = (req, res) => {
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
-
-    return new Promise((resolve, reject) => {
-        if(token){
-            //Decode the token
-            jwt.verify(token,secret,(err,decod)=>{
-                console.log(decod);
-                if(err){
-                    resolve(false)
-                }
-                else{
-                    //If decoded then call next() so that respective route is called.
-                    req.decoded=decod;
-                    resolve(true)
-                }
-            });
-        }
-        else{
-            resolve(false)
-        }
-    })
-
-
-}
+let checkToken = require("./securityService").checkToken;
+let signToken = require("./securityService").signToken;
 
 module.exports = function (sequelize) {
-    var model = require("./model")(sequelize);
-    var User = model.User;
+    let model = require("./model")(sequelize);
+    let User = model.User;
     return {
         register: function (req, res) {
-            var newUser = {
+            let newUser = {
                 username: req.body.username,
                 password: req.body.password
             };
             User.create(newUser).then((user) => {
                 user = user.get({plain: true});
-                var token = jwt.sign(user, secret);
+                let token = signToken(user);
                 let message = "Reg Successful";
                 res.send({
                     ok: true,
@@ -62,7 +36,7 @@ module.exports = function (sequelize) {
                         }
                         else {
                             //create the token.
-                            var token = jwt.sign(user, secret);
+                            var token = signToken(user);
                             message = "Login Successful";
                             break;
                         }
@@ -97,7 +71,6 @@ module.exports = function (sequelize) {
                     });
                 }
             })
-
-        }
+        },
     };
 };

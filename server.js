@@ -34,12 +34,15 @@ app.use(bodyParser());
 
 // sequelize initialization
 let sequelize = new Sequelize("mysql://root:root@localhost:3306/lintrim");
-var userService= require("./userService")(sequelize);
+let userService = require("./userService")(sequelize);
+let securityService = require("./securityService");
 
 //sync the model with the database
 sequelize.sync().then((err) => {
     app.post("/register", userService.register);
     app.post("/login", userService.login);
+    app.get("/updatetoken", securityService.updateToken.bind(this, sequelize));
+
     app.get("/users", userService.get);
 
     app.listen(5000);
