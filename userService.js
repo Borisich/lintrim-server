@@ -58,7 +58,41 @@ module.exports = function (sequelize) {
                     });
                 }
             });
+        },
+        reset: function (req, res) {
+            let message;
+            User.findOne({where: {resetString: req.body.resetString}}).then((user) => {
+                if (user) {
+                    user = user.get({plain: true});
+                    let updatedUser = {
+                        password: req.body.password,
+                        resetString: null
+                    };
 
+                    User.update(updatedUser, {where: {resetString: req.body.resetString}}).then(result => {
+                        //create the token.
+                        var token = signToken(user);
+                        message = "Login Successful";
+                        res.status(200).json({
+                            ok: true,
+                            message,
+                            token
+                        });
+                    }).catch(error => {
+                        message = "Update user error";
+                        res.status(403).json({
+                            ok: false,
+                            message
+                        });
+                    })
+                } else {
+                    message = "Wrong resetString value";
+                    res.status(403).json({
+                        ok: false,
+                        message
+                    });
+                }
+            });
         },
         recover: function (req, res) {
             console.log('recover');
@@ -82,12 +116,12 @@ module.exports = function (sequelize) {
             }
 
             const token = randomStr(80);
-
+            let link = `${'http://localhost:3000/login/reset/'}${token}`;
             let data = {
                 to: 'iv.xromov@mail.ru',
                 subject: 'Восстановление пароля', //'Nodemailer is unicode friendly ✔',
-                text: `Для восстановления пароля перейдите по ссылке: ${'http://localhost:3000/login/reset/'}${token}`, //'Hello to myself!',
-                html: `<p>Для восстановления пароля перейдите по ссылке: </p><p>${'http://localhost:3000/login/reset/'}${token}</p>`,
+                text: `Для восстановления пароля перейдите по ссылке: ` + link, //'Hello to myself!',
+                html: `<p>Для восстановления пароля перейдите по ссылке: </p><p><a href=${link}>link</a></p>`,
             };
 
             User.findOne({where: {username: email}}).then(user => {

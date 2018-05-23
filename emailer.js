@@ -10,7 +10,7 @@ const sendEmail = (emailData) => {
         port: 465,
         auth: {
             user: "iv.xromov@mail.ru",
-            pass: ""
+            pass: "q9sin65i"
         }
     });
 
