@@ -9,7 +9,7 @@ module.exports = function (sequelize) {
     return {
         register: function (req, res) {
             let newUser = {
-                username: req.body.username,
+                email: req.body.email,
                 password: req.body.password
             };
             User.create(newUser).then((user) => {
@@ -28,8 +28,8 @@ module.exports = function (sequelize) {
             User.findAll().then((users) => {
                 for(var user of users) {
                     user = user.get({plain: true});
-                    if (user.username != req.body.username) {
-                        message = "Wrong Name";
+                    if (user.email != req.body.email) {
+                        message = "Wrong Email";
                     } else {
                         if (user.password != req.body.password) {
                             message = "Wrong Password";
@@ -124,14 +124,14 @@ module.exports = function (sequelize) {
                 html: `<p>Для восстановления пароля перейдите по ссылке: </p><p><a href=${link}>link</a></p>`,
             };
 
-            User.findOne({where: {username: email}}).then(user => {
+            User.findOne({where: {email: email}}).then(user => {
                 if (!user){
                     res.status(403).json({
                         ok: false,
                         message: 'no user found'
                     });
                 } else {
-                    User.update({resetString: token}, {where: {username: email}}).then(result => {
+                    User.update({resetString: token}, {where: {email: email}}).then(result => {
                         sendEmail(data).then(ok => {
                             if (ok) {
                                 console.log('COMPLETE')
@@ -145,7 +145,73 @@ module.exports = function (sequelize) {
                                 });
                             }
                         })
+                    }).catch(error => {
+                        res.status(403).json({
+                            ok: false,
+                            message: "Update user error"
+                        });
                     })
+                }
+            })
+        },
+        // getProfile: function (req, res) {
+        //     checkToken(req,res).then(ok => {
+        //         let message;
+        //         if (ok) {
+        //             let userId = req.decoded.id; //id пользователя из расшифрованного токена
+        //             User.findOne({where: {id: userId}}).then((user) => {
+        //                 if (user) {
+        //                     user = user.get({plain: true});
+        //                     delete user.password;
+        //                     delete user.resetString;
+        //                     delete user.createdAt;
+        //                     delete user.updatedAt;
+        //                     res.send(user);
+        //                 } else {
+        //                     message = "No user found";
+        //                     res.status(403).json({
+        //                         ok: false,
+        //                         message
+        //                     });
+        //                 }
+        //             })
+        //
+        //
+        //         } else {
+        //             message = "Wrong token";
+        //             res.status(403).json({
+        //                 ok: false,
+        //                 message
+        //             });
+        //         }
+        //     })
+        // },
+        updateProfile: function (req, res) {
+            checkToken(req,res).then(ok => {
+                let message;
+                if (ok) {
+                    let userId = req.decoded.id; //id пользователя из расшифрованного токена
+                    let updatedUser = req.body.profile;
+
+                    User.update(updatedUser, {where: {id: userId}}).then(result => {
+                        message = "Update Successful";
+                        res.status(200).json({
+                            ok: true,
+                            message,
+                        });
+                    }).catch(error => {
+                        message = "Update Error";
+                        res.status(403).json({
+                            ok: false,
+                            message
+                        });
+                    })
+                } else {
+                    message = "Wrong token";
+                    res.status(403).json({
+                        ok: false,
+                        message
+                    });
                 }
             })
         },

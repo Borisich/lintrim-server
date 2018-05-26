@@ -47,6 +47,9 @@ sequelize.sync().then((err) => {
     app.get("/updatetoken", securityService.updateToken.bind(this, sequelize));
 
     app.get("/users", userService.get);
+    //app.get("/profile", userService.getProfile);
+    app.post("/updateprofile", userService.updateProfile);
+
 
     app.listen(5000);
 });

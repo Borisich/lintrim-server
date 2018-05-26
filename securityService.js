@@ -26,7 +26,32 @@ SecurityService.checkToken = (req, res) => {
     })
 };
 
+// SecurityService.getTokenInfo = (req, res) => {
+//     let token = req.body.token || req.query.token || req.headers['x-access-token'];
+//
+//     return new Promise((resolve, reject) => {
+//         if(token){
+//             jwt.verify(token, secret, (err, decod)=>{
+//                 if(err){
+//                     resolve(false)
+//                 }
+//                 else{
+//                     req.decoded=decod;
+//                     resolve(true)
+//                 }
+//             });
+//         }
+//         else{
+//             resolve(false)
+//         }
+//     })
+// };
+
 SecurityService.signToken = (payload) => {
+    delete payload.password;
+    delete payload.resetString;
+    delete payload.createdAt;
+    delete payload.updatedAt;
     let extendedPayload = Object.assign({}, payload, {exp: Math.floor(Date.now() / 1000) + tokenDuration, durationSec: tokenDuration});
     return jwt.sign(extendedPayload, secret);
 };
