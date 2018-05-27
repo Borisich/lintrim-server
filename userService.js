@@ -59,7 +59,7 @@ module.exports = function (sequelize) {
                 }
             });
         },
-        reset: function (req, res) {
+        resetPassword: function (req, res) {
             let message;
             User.findOne({where: {resetString: req.body.resetString}}).then((user) => {
                 if (user) {
@@ -94,7 +94,67 @@ module.exports = function (sequelize) {
                 }
             });
         },
-        recover: function (req, res) {
+        updatePassword: function (req, res) {
+            checkToken(req,res).then(ok => {
+                let message;
+                if (ok) {
+                    let userId = req.decoded.id; //id пользователя из расшифрованного токена
+                    let oldPassword = req.body.oldPassword;
+                    let newPassword = req.body.newPassword;
+
+                    User.findOne({where: {id: userId}}).then((user) => {
+                        if (user) {
+                            user = user.get({plain: true});
+                            let updatedUser = {
+                                password: newPassword
+                            };
+
+                            if (oldPassword === user.password) {
+                                User.update(updatedUser, {where: {id: userId}}).then(result => {
+                                    message = "Update Successful";
+                                    res.status(200).json({
+                                        ok: true,
+                                        message,
+                                    });
+                                }).catch(error => {
+                                    message = "Update Error";
+                                    res.status(403).json({
+                                        ok: false,
+                                        message
+                                    });
+                                })
+                            } else {
+                                message = "Wrong Password";
+                                res.status(403).json({
+                                    ok: false,
+                                    message
+                                });
+                            }
+
+                        } else {
+                            message = "User not found";
+                            res.status(403).json({
+                                ok: false,
+                                message
+                            });
+                        }
+                    }).catch(error => {
+                        message = "DB Access Error";
+                        res.status(403).json({
+                            ok: false,
+                            message
+                        });
+                    });
+                } else {
+                    message = "Wrong token";
+                    res.status(403).json({
+                        ok: false,
+                        message
+                    });
+                }
+            })
+        },
+        recoverPassword: function (req, res) {
             console.log('recover');
             let email = req.body.email;
 
@@ -154,38 +214,6 @@ module.exports = function (sequelize) {
                 }
             })
         },
-        // getProfile: function (req, res) {
-        //     checkToken(req,res).then(ok => {
-        //         let message;
-        //         if (ok) {
-        //             let userId = req.decoded.id; //id пользователя из расшифрованного токена
-        //             User.findOne({where: {id: userId}}).then((user) => {
-        //                 if (user) {
-        //                     user = user.get({plain: true});
-        //                     delete user.password;
-        //                     delete user.resetString;
-        //                     delete user.createdAt;
-        //                     delete user.updatedAt;
-        //                     res.send(user);
-        //                 } else {
-        //                     message = "No user found";
-        //                     res.status(403).json({
-        //                         ok: false,
-        //                         message
-        //                     });
-        //                 }
-        //             })
-        //
-        //
-        //         } else {
-        //             message = "Wrong token";
-        //             res.status(403).json({
-        //                 ok: false,
-        //                 message
-        //             });
-        //         }
-        //     })
-        // },
         updateProfile: function (req, res) {
             checkToken(req,res).then(ok => {
                 let message;
