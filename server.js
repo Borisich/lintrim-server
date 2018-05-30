@@ -41,6 +41,7 @@ let securityService = require("./securityService");
 //sync the model with the database
 sequelize.sync().then((err) => {
     app.post("/register", userService.register);
+    app.post("/confirmEmail", userService.confirmEmail);
     app.post("/login", userService.login);
     app.post("/recoverpassword", userService.recoverPassword);
     app.post("/resetpassword", userService.resetPassword);

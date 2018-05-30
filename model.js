@@ -7,7 +7,7 @@ module.exports = function (sequelize) {
         lastName: Sequelize.STRING,
         phone: Sequelize.STRING,
         password: Sequelize.STRING,
-        resetString: Sequelize.STRING
+        uniqueString: Sequelize.STRING //для подверждения email и сброса пароля
     });
     return {
         User: User

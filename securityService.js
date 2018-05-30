@@ -49,7 +49,7 @@ SecurityService.checkToken = (req, res) => {
 
 SecurityService.signToken = (payload) => {
     delete payload.password;
-    delete payload.resetString;
+    delete payload.uniqueString;
     delete payload.createdAt;
     delete payload.updatedAt;
     let extendedPayload = Object.assign({}, payload, {exp: Math.floor(Date.now() / 1000) + tokenDuration, durationSec: tokenDuration});
